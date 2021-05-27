@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter.font import Font
 import mysql.connector
 from datetime import date
 from PIL import ImageTk, Image
@@ -125,6 +126,28 @@ botones_agregar = []
 disponibles_productos = []
 ids = []
 
+
+class HoverButton(Button):
+    def __init__(self, master, **kw):  # constructor
+        Button.__init__(self, master=master, **kw)  # pasamos los argumentos de la clase anterior llamando al contructor
+        self.defaultBackground = self["background"]
+        self.bind("<Enter>", self.on_enter)  # bind nos permite mapear una funcion a un evento
+        self.bind("<Leave>", self.on_leave)
+        self.bind("<Button-1>", self.on_click)
+
+    # cuando le presionas pasa, desactiva la letra y le cambia el color
+    def on_enter(self, _):
+        self['background'] = "#E1AB00"
+
+    # cuando el mouse deja el boton se activa (no es necesario el click)
+    def on_leave(self, _):
+        self['background'] = self.defaultBackground
+
+    # funcion de click para las letras
+    def on_click(self, _):
+        self['background'] = self["activebackground"]
+
+
 my_cursor.execute("SELECT * FROM SET_DE_LEGO")
 for x in my_cursor:
     ids.append(x[0])
@@ -151,15 +174,15 @@ def agregar(x, tipo):
         my_cursor.execute(f"DELETE FROM OTRO WHERE Articulo_ID={ids[x]}")
 
     db.commit()
-    print("Historial")
-    my_cursor.execute(f"SELECT * FROM HISTORIAL")
-    for i in my_cursor:
-        print(i)
-
-    print("Disponibles")
-    my_cursor.execute(f"SELECT * FROM SET_DE_LEGO")
-    for i in my_cursor:
-        print(i)
+    # print("Historial")
+    # my_cursor.execute(f"SELECT * FROM HISTORIAL")
+    # for i in my_cursor:
+    #     print(i)
+    #
+    # print("Disponibles")
+    # my_cursor.execute(f"SELECT * FROM SET_DE_LEGO")
+    # for i in my_cursor:
+    #     print(i)
 
     disponibles_productos[x].destroy()
 
@@ -171,16 +194,18 @@ def verHistorial():
     historial_frame.destroy()
     disponibles_frame.destroy()
 
-    historial_frame = Frame(main_frame, width=800, height=600, relief=FLAT, bg="#DFDFDF")  # el frame de los disponibles
-    c = Canvas(historial_frame, height=600)  # el canvas donde va nuestro frame anterior
+    historial_frame = Frame(root, relief=FLAT, bg="#DFDFDF")  # el frame de los disponibles
+    c = Canvas(historial_frame, bg="#E1AB00", width=1000, height=650)  # el canvas donde va nuestro frame anterior
     scrollbar = Scrollbar(historial_frame, orient="vertical", command=c.yview)  # el widget de scrollbar
-    sf = Frame(c)  # metemos el canvas, que contiene un frame
+    sf = Frame(c, bg="#E1AB00", padx=100)  # metemos el canvas, que contiene un frame
     sf.bind("<Configure>", lambda e: c.configure(scrollregion=c.bbox("all")))  # configuramos el evento con bind
-    c.create_window((0, 0), window=sf, anchor="nw")  # finalmente configuramos el canvas
+    c.create_window((0, 0), window=sf, anchor="nw", width=1000)  # finalmente configuramos el canvas
     c.configure(yscrollcommand=scrollbar.set)
+    c.bind_all("<MouseWheel>", lambda event: c.yview_scroll(int(-1 * (event.delta / 120)), "units"))
     c.pack(side="left", fill="both", expand=1)
     scrollbar.pack(side="right", fill=Y)
-    historial_frame.grid(column=0, row=1, columnspan=2, sticky=NSEW)
+
+    historial_frame.grid(column=0, row=2, columnspan=2, sticky=NSEW)
 
     my_cursor.execute("SELECT * FROM HISTORIAL")
 
@@ -189,16 +214,16 @@ def verHistorial():
         prod = f"Numero de producto: {set[0]}"
         fecha = f"Fecha: {set[1]}"
 
-        historial_productos.append(Frame(sf, bg="black", relief=FLAT, bd=3, width=850))
+        historial_productos.append(Frame(sf, bg="#FFF000", relief=FLAT, bd=0))
         historial_productos[-1].pack(fill=X)
         image1 = Image.open(f"LegoImg/{set[0]}.png")
         resize = image1.resize((300, 300), Image.ANTIALIAS)
         test = ImageTk.PhotoImage(resize)
-        label1 = Label(historial_productos[-1], image=test, width=300, height=300)
+        label1 = Label(historial_productos[-1], bg="#FFF000", image=test, width=300, height=300)
         label1.image = test
         label1.pack(fill=X)
-        Label(historial_productos[-1], anchor=W, font="Fixedsys 18 bold", text=prod).pack(fill=X)
-        Label(historial_productos[-1], anchor=W, font="Fixedsys 18 bold", text=fecha).pack(fill=X)
+        Label(historial_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=prod).pack(fill=X)
+        Label(historial_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=fecha).pack(fill=X)
 
 
 
@@ -219,17 +244,18 @@ def verDisponibles():
     for x in my_cursor:
         ids.append(x[0])
 
-    disponibles_frame = Frame(main_frame, width=800, height=600, relief=FLAT,
-                              bg="#DFDFDF")  # el frame de los disponibles
-    c = Canvas(disponibles_frame, height=600)  # el canvas donde va nuestro frame anterior
+    disponibles_frame = Frame(root, relief=FLAT, bg="#DFDFDF")  # el frame de los disponibles
+    c = Canvas(disponibles_frame, bg="#E1AB00", width=1000, height=650)  # el canvas donde va nuestro frame anterior
     scrollbar = Scrollbar(disponibles_frame, orient="vertical", command=c.yview)  # el widget de scrollbar
-    sf = Frame(c, width=800)  # metemos el canvas, que contiene un frame
+    sf = Frame(c, bg="#E1AB00", padx=100)  # metemos el canvas, que contiene un frame
     sf.bind("<Configure>", lambda e: c.configure(scrollregion=c.bbox("all")))  # configuramos el evento con bind
-    c.create_window((0, 0), window=sf, anchor="nw")  # finalmente configuramos el canvas
+    c.create_window((0, 0), window=sf, anchor="nw", width=1000)  # finalmente configuramos el canvas
     c.configure(yscrollcommand=scrollbar.set)
+    c.bind_all("<MouseWheel>", lambda event: c.yview_scroll(int(-1*(event.delta/120)), "units"))
     c.pack(side="left", fill="both", expand=1)
     scrollbar.pack(side="right", fill=Y)
-    disponibles_frame.grid(column=0, row=1, columnspan=2, sticky=NSEW)
+
+    disponibles_frame.grid(column=0, row=2, columnspan=2, sticky=NSEW)
 
 
     # SETS DE LEGO
@@ -244,22 +270,23 @@ def verDisponibles():
         edad = f"Edad: {set[3]}"
         serie = f"Serie: {set[4]}"
 
-        disponibles_productos.append(Frame(sf, bg="black", relief=FLAT, bd=3, width=850))
-        botones_agregar.append(Button(disponibles_productos[-1], fg="white", bg="blue", text="Agregar",
-                                      command=lambda num=i: agregar(num, "set")))
+        disponibles_productos.append(Frame(sf, bg="#FFF000", relief=FLAT, bd=0))
+        botones_agregar.append(HoverButton(disponibles_productos[-1], fg="white", bg="#BF7A0A", activebackground="red",
+                                           text="Agregar", font="Fixedsys 18 bold",
+                                           command=lambda num=i: agregar(num, "set")))
 
-        disponibles_productos[-1].pack(fill=X)
+        disponibles_productos[-1].pack(fill=BOTH, expand=1)
         image1 = Image.open(f"LegoImg/{set[0]}.png")
         resize = image1.resize((300, 300), Image.ANTIALIAS)
         test = ImageTk.PhotoImage(resize)
-        label1 = Label(disponibles_productos[-1], image=test, width=300, height=300)
+        label1 = Label(disponibles_productos[-1], bg="#FFF000", image=test, width=300, height=300)
         label1.image = test
         label1.pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=num_set).pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=name_set).pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=num_piezas).pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=edad).pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=serie).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=num_set).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=name_set).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=num_piezas).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=edad).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=serie).pack(fill=X)
         botones_agregar[-1].pack(fill=X)
         i += 1
 
@@ -270,20 +297,21 @@ def verDisponibles():
         color = f"Color: {set[1]}"
         material = f"Material: {set[2]}"
 
-        disponibles_productos.append(Frame(sf, bg="black", relief=FLAT, bd=3, width=850))
-        botones_agregar.append(Button(disponibles_productos[-1], fg="white", bg="blue", text="Agregar",
-                                      command=lambda num=i: agregar(num, "pieza")))
+        disponibles_productos.append(Frame(sf, bg="#FFF000", relief=FLAT, bd=0))
+        botones_agregar.append(HoverButton(disponibles_productos[-1], fg="white", bg="#BF7A0A", activebackground="red",
+                                           text="Agregar", font="Fixedsys 18 bold",
+                                           command=lambda num=i: agregar(num, "pieza")))
 
         disponibles_productos[-1].pack(fill=X)
         image1 = Image.open(f"LegoImg/{set[0]}.png")
         resize = image1.resize((300, 300), Image.ANTIALIAS)
         test = ImageTk.PhotoImage(resize)
-        label1 = Label(disponibles_productos[-1], image=test, width=300, height=300)
+        label1 = Label(disponibles_productos[-1], bg="#FFF000", image=test, width=300, height=300)
         label1.image = test
         label1.pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=pieza).pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=color).pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=material).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=pieza).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=color).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=material).pack(fill=X)
         botones_agregar[-1].pack(fill=X)
         i += 1
 
@@ -295,21 +323,22 @@ def verDisponibles():
         nombre = f"Nombre: {set[2]}"
         tipo = f"Tipo: {set[3]}"
 
-        disponibles_productos.append(Frame(sf, bg="black", relief=FLAT, bd=3, width=850))
-        botones_agregar.append(Button(disponibles_productos[-1], fg="white", bg="blue", text="Agregar",
-                                      command=lambda num=i: agregar(num, "otro")))
+        disponibles_productos.append(Frame(sf, bg="#FFF000", relief=FLAT, bd=0))
+        botones_agregar.append(HoverButton(disponibles_productos[-1], fg="white", bg="#BF7A0A", activebackground="red",
+                                           text="Agregar", font="Fixedsys 18 bold",
+                                           command=lambda num=i: agregar(num, "otro")))
 
         disponibles_productos[-1].pack(fill=X)
         image1 = Image.open(f"LegoImg/{set[0]}.png")
         resize = image1.resize((300, 300), Image.ANTIALIAS)
         test = ImageTk.PhotoImage(resize)
-        label1 = Label(disponibles_productos[-1], image=test, width=300, height=300)
+        label1 = Label(disponibles_productos[-1], bg="#FFF000", image=test, width=300, height=300)
         label1.image = test
         label1.pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=otro).pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=serie).pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=nombre).pack(fill=X)
-        Label(disponibles_productos[-1], anchor=W, font="Fixedsys 18 bold", text=tipo).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=otro).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=serie).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=nombre).pack(fill=X)
+        Label(disponibles_productos[-1], bg="#FFF000", anchor=W, font="Fixedsys 18 bold", text=tipo).pack(fill=X)
         botones_agregar[-1].pack(fill=X)
         i += 1
 
@@ -317,21 +346,35 @@ def verDisponibles():
 # DEFINICION DE ROOT
 root = Tk()
 root.title("Lego Shop History!")
-root.minsize(600, 600)
+root.minsize(1000, 650)
 root.resizable(0, 0)
-main_frame = Frame(root, width=800, height=600)
+root["bg"] = "black"
 
-# GLOBALES
-historial_frame = Frame(main_frame, width=700, height=600, relief=FLAT, bg="#DFDFDF")
-disponibles_frame = Frame(main_frame, width=700, height=600, relief=FLAT, bg="#DFDFDF")
+top_frame = Frame(root, bg="#FFF000")
 
-btn_disponibles = Button(main_frame, text="Disponibles", command=verDisponibles, width=46)
-btn_historial = Button(main_frame, text="Historial", command=verHistorial, width=46)
+image1 = Image.open(f"LegoImg/legologo.png")
+resize = image1.resize((80, 80), Image.ANTIALIAS)
+test = ImageTk.PhotoImage(resize)
+label1 = Label(top_frame, image=test, width=80, height=80)
+label1.image = test
+titulo_label = Label(top_frame, anchor=W, font="MS 30 bold", bg="#FFF000", padx=20, text="COLECCION DE LEGO")
+label1.grid(column=0, row=0)
+titulo_label.grid(column=1, row=0)
+top_frame.grid(column=0, row=0, columnspan=2, sticky=EW)
+
+historial_frame = Frame(root, relief=FLAT, bg="#DFDFDF")
+disponibles_frame = Frame(root, relief=FLAT, bg="#DFDFDF")
+
+new_font = Font(family="Segoe UI", size=16)
+
+btn_disponibles = HoverButton(root, font=new_font, bg="#FFF000", bd=0, activebackground="red",
+                              relief=FLAT, text="Disponibles", command=verDisponibles)
+btn_historial = HoverButton(root, font=new_font, bg="#FFF000", bd=0, activebackground="red",
+                            relief=FLAT, text="Historial", command=verHistorial)
 
 # COLOCACION DE ELEMENTOS EN PANTALLA
-main_frame.grid(column=0, row=0, columnspan=2, rowspan=2)
-btn_disponibles.grid(column=0, row=0)
-btn_historial.grid(column=1, row=0)
+btn_disponibles.grid(column=0, row=1, sticky=EW, padx=3, pady=3)
+btn_historial.grid(column=1, row=1, sticky=EW, padx=3, pady=3)
 
 # MAIN
 verDisponibles()
